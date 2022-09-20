@@ -1,0 +1,19 @@
+{
+    "readers": [
+        {
+            "login": "reader",
+            "password": "123456"
+        }
+    ],
+    "librarians": [
+        {
+            "login": "librarian",
+            "password": "pushkin",
+            "rights": {
+                "addUser": true,
+                "lendBook": true,
+                "addBook": true
+            }
+        }
+    ]
+}
