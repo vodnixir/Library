@@ -1,6 +1,8 @@
+import json
+
 import database
-import reader
 import librarian
+import reader
 
 
 class LibraryManager():
@@ -11,8 +13,8 @@ class LibraryManager():
     def input(self):
         pass
 
-    def addReader(self, jsonObj):
-        answer = self.login(jsonObj)
+    def _cmdAddReader(self, jsonObj):
+        answer = self._cmdLogin(jsonObj)
         if answer["result"] == "success":
             newReader = reader.Reader(jsonObj["usercredentials"]["login"], jsonObj["usercredentials"]["password"])
             if not "readers" in self.db.data:
@@ -22,10 +24,32 @@ class LibraryManager():
             answer = self.successAnswer("Reader added")
         return answer
 
-    def addLibrarian(self, jsonObj):
-        answer = self.login(jsonObj)
+    def _cmdDelUser(self, jsonObj):
+        answer = self._cmdLogin(jsonObj)
         if answer["result"] == "success":
-            newLibrarian = librarian.Librarian(jsonObj["usercredentials"]["login"], jsonObj["usercredentials"]["password"])
+            tmpReaderList = [x for x in self.db.data["readers"] if
+                             (jsonObj["usercredentials"]["login"] == x.get('login'))]
+            tmpLibrarianList = [x for x in self.db.data["librarians"] if
+                                (jsonObj["usercredentials"]["login"] == x.get('login'))]
+            if len(tmpReaderList) == 0 and len(tmpLibrarianList) == 0:
+                answer = self.successAnswer("User not found")
+            else:
+                if len(tmpReaderList) != 0:
+                    self.db.data["readers"] = [x for x in self.db.data["readers"] if
+                                               (jsonObj["usercredentials"]["login"] != x.get('login'))]
+                    self.db.save()
+                if len(tmpLibrarianList) != 0:
+                    self.db.data["librarians"] = [x for x in self.db.data["librarians"] if
+                                                  (jsonObj["usercredentials"]["login"] != x.get('login'))]
+                    self.db.save()
+                answer = self.successAnswer("User deleted")
+        return answer
+
+    def _cmdAddLibrarian(self, jsonObj):
+        answer = self._cmdLogin(jsonObj)
+        if answer["result"] == "success":
+            newLibrarian = librarian.Librarian(jsonObj["usercredentials"]["login"],
+                                               jsonObj["usercredentials"]["password"])
             if not "librarians" in self.db.data:
                 self.db.data["librarians"] = []
             self.db.data["librarians"].append(newLibrarian.__dict__)
@@ -43,7 +67,7 @@ class LibraryManager():
         # print(json.dumps(answer))
         return (answer)
 
-    def login(self, jsonObj):
+    def _cmdLogin(self, jsonObj):
         if jsonObj["credentials"]["login"] == "admin" and jsonObj["credentials"]["password"] == "000000":
             answer = self.successAnswer("Успешный вход")
         else:
@@ -66,8 +90,26 @@ class LibraryManager():
                 answer = self.failAnswer("Login failed")
         return (answer)
 
-    def clearDB(self, jsonObj):
-        answer = self.login(jsonObj)
+    def _cmdClearDB(self, jsonObj):
+        answer = self._cmdLogin(jsonObj)
         if answer["result"] == "success":
             self.db.clearDB()
+        return answer
+
+    def analyseCmd(self, txt):
+        jsonObj = json.loads(txt)
+        cmd = jsonObj["cmd"]
+        # print(jsonObj["cmd"])
+        if cmd == "login":
+            answer = self._cmdLogin(jsonObj)
+        elif cmd == "addReader":
+            answer = self._cmdAddReader(jsonObj)
+        elif cmd == "delUser":
+            answer = self._cmdDelUser(jsonObj)
+        elif cmd == "addLibrarian":
+            answer = self._cmdAddLibrarian(jsonObj)
+        elif cmd == "clearDB":
+            answer = self._cmdClearDB(jsonObj)
+        else:
+            answer = self.failAnswer("Команда не распознана")
         return answer
