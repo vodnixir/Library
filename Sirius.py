@@ -441,6 +441,29 @@
 
 
 
+# АЛГОРИТМ НОД
+# a, b = map(int, input().split())
+# while a != 0 and b != 0:
+#     if a > b:
+#         a = a % b
+#     else:
+#         b = b % a
+# print(a + b)
+
+# АЛГОРИТМ НОК
+# a, b = map(int, input().split())
+# m, n = a, b
+# while a != 0 and b != 0:
+#     if a > b:
+#         a = a % b
+#     else:
+#         b = b % a
+# nod = a + b
+# if nod == 0:
+#     print(0)
+# else:
+#     print(round((m * n) / nod))
+
 
 
 
